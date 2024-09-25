@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Confirm your email</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .container {
+            background-color: #f9f9f9;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            padding: 20px;
+        }
+        .button {
+            display: inline-block;
+            padding: 10px 20px;
+            background-color: #007bff;
+            color: #ffffff;
+            text-decoration: none;
+            border-radius: 5px;
+        }
+        .footer {
+            margin-top: 20px;
+            font-size: 0.8em;
+            color: #666;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <h2>Email confirmation</h2>
+    <p>Hello {{username}},</p>
+    <p>Welcome to Fintech API</p>
+    <p>To confirm your email, click the button below:</p>
+    <p>
+        <a href="{{emailConfirmationUrl}}" class="button">Confirm Your Email</a>
+    </p>
+    <p>Or copy and paste the following link into your browser:</p>
+    <p>{{emailConfirmationUrl}}</p>
+    <p>This link will expire in {{expirationTime}} minutes.</p>
+    <p>If you have any questions or need further assistance, please don't hesitate to contact our support team.</p>
+    <p>Best regards,<br>Fintech API Support</p>
+</div>
+<div class="footer">
+    <p>This is an automated message, please do not reply to this email.</p>
+    <p>If you didn't make this request, please contact us immediately at support@fintechapi.com</p>
+</div>
+</body>
+</html>
