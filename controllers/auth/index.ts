@@ -1,13 +1,15 @@
-import { Request, Response} from "express";
+import { Request, Response, NextFunction} from "express";
 import asyncHandler from "express-async-handler";
+import {Repository} from "typeorm";
 import bcrypt from "bcryptjs";
 import {generateToken} from "../../utils/generateToken";
 import {sendEmail} from "../../utils/sendEmail";
 import {User} from "../../entity/User";
 import {AppDataSource} from "../../config/data-source";
 import {ApiResponse} from "../../types/utils";
+import {createNewWallet} from "../wallet";
 
-const userRepository = AppDataSource.getRepository(User);
+const userRepository: Repository<User> = AppDataSource.getRepository(User);
 
 // @desc Register user
 // @route POST /api/auth/register
@@ -55,4 +57,30 @@ export const register = asyncHandler(async ( req: Request, res: Response) => {
         res.status(500).json({ message: "An unknown error occurred"});
     }
 
+})
+
+// @desc Verify email
+// @route POST /api/auth/verify-email/:id
+// @access Private
+export const verifyEmail = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
+    const { id } = req.params;
+    const user = await userRepository.findOneBy({ id});
+    if(!user) {
+        res.status(404).json({ message: "User not found"});
+    }
+    user.isEmailVerified = true;
+    user.updatedAt = new Date();
+    const updateUserResponse = await userRepository.save(user);
+    if(!updateUserResponse) return;
+
+    const walletReq = {
+        body: {
+            balance: 0, // Default balance
+            currency: "USD", // Default currency
+            userId: user.id
+        }
+    } as Request;
+
+    const createWalletResponse = createNewWallet(walletReq, res, next);
+    res.status(200).json({ message: "Email verified successfully"});
 })
