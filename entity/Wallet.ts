@@ -1,4 +1,4 @@
-import { Entity, PrimaryGeneratedColumn, Column, OneToOne} from "typeorm";
+import { Entity, PrimaryGeneratedColumn, Column, OneToOne, Relation} from "typeorm";
 import {User} from "./User";
 
 @Entity()
@@ -14,7 +14,7 @@ export class Wallet {
     currency: string
 
     @OneToOne(() => User, user => user.wallet)
-    user: User
+    user: Relation<User>
 
     @Column()
     createdAt: Date

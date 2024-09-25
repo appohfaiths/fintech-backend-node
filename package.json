@@ -6,7 +6,11 @@
    "scripts": {
       "test": "echo \"Error: no test specified\" && exit 1",
       "start": "ts-node src/index.ts",
-      "typeorm": "typeorm-ts-node-commonjs"
+      "typeorm": "typeorm-ts-node-commonjs",
+      "migration-run": "npx typeorm-ts-node-commonjs migration:run -d ./config/data-source",
+      "copy-templates": "mkdir -p ./build/templates && ncp ./templates ./build/templates",
+      "dev": "NODE_ENV=development concurrently \"npx tsc --watch\" \"nodemon -q build/index.js\"",
+      "build": "npm run copy-templates && npx tsc"
    },
    "keywords": [],
    "author": "",
@@ -36,6 +40,7 @@
       "@types/bcryptjs": "^2.4.6",
       "@types/cors": "^2.8.17",
       "@types/express": "^4.17.21",
+      "@types/helmet": "^4.0.0",
       "@types/jsonwebtoken": "^9.0.7",
       "@types/node": "^22.6.1",
       "@types/nodemailer": "^6.4.16",
