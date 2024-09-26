@@ -18,13 +18,15 @@ export const createNewWallet = asyncHandler(async ( req: Request, res: Response)
         res.status(400).json({ message: "Cannot create wallet without user Id"});
     }
 
-    const user = await userRepository.findOne(userId);
+    const user = await userRepository.findOneBy({id: userId});
     if(!user) return;
 
     const wallet = new Wallet();
     wallet.user = user;
     wallet.balance = balance ?? 0;
     wallet.currency = currency ?? "USD";
+    wallet.createdAt = new Date();
+    wallet.updatedAt = new Date();
 
     try {
         const createWalletResponse = await walletRepository.save(wallet);
@@ -34,6 +36,10 @@ export const createNewWallet = asyncHandler(async ( req: Request, res: Response)
                 subject: "Your New Wallet is Ready!",
                 data: {
                     username: user.username,
+                    walletId: createWalletResponse.id,
+                    balance: createWalletResponse.balance,
+                    currency: createWalletResponse.currency,
+                    currencySymbol: "$"
                 },
                 template: "NewWalletCreated.html"
             })
@@ -54,7 +60,59 @@ export const createNewWallet = asyncHandler(async ( req: Request, res: Response)
 // @desc get wallet
 // @route GET /api/wallet/:id
 // @access Private
+export const getWallet = asyncHandler( async(req: Request, res: Response) => {
+    const walletId = req.params.id;
+    if(!walletId) {
+        res.status(400).json({ message: "Cannot get wallet without wallet Id"});
+    }
+
+    const wallet = await walletRepository.findOneBy({id: walletId});
+    if(!wallet) {
+        res.status(404).json({ message: "Wallet not found"});
+    } else {
+        res.status(200).json({
+            balance: wallet.balance,
+            currency: wallet.currency,
+        });
+    }
+})
 
 // @desc get wallets
 // @route GET /api/wallets
 // @access Private
+
+// @desc update wallet
+// @route PUT /api/wallet/:id
+// @access Private
+export const updateWallet = asyncHandler(async (req: Request, res: Response) => {
+    const walletId = req.params.id;
+    if(!walletId) {
+        res.status(400).json({ message: "Cannot update wallet without wallet Id"});
+    }
+
+    const wallet = await walletRepository.findOneBy({id: walletId});
+    if(!wallet) {
+        res.status(404).json({ message: "Wallet not found"});
+        return;
+    }
+
+    const { amount, currency} = req.body;
+    if(!amount) {
+        res.status(400).json({ message: "Cannot update wallet without amount"});
+        return;
+    }
+
+    const parsedAmount = parseFloat(amount);
+    console.log(typeof wallet.balance);
+    if(!Number.isNaN(parsedAmount)){
+        wallet.balance = parseFloat(wallet.balance.toString()) + parsedAmount;
+    }
+    wallet.currency = currency ?? wallet.currency;
+    wallet.updatedAt = new Date();
+    const updateWalletResponse = await walletRepository.save(wallet);
+    if(updateWalletResponse) {
+        res.status(200).json({ message: "Wallet updated successfully"});
+    } else {
+        res.status(400).json({ message: "Failed to update wallet"});
+    }
+})
