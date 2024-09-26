@@ -1,6 +1,6 @@
 require("dotenv").config()
 import express from "express";
-import {register} from "../../controllers/auth";
+import {register, verifyEmail} from "../../controllers/auth";
 
 const router = express.Router();
 
@@ -33,5 +33,6 @@ const router = express.Router();
  *              description: Bad request
  */
 router.post("/register", register);
+router.post("/verify-email/:id", verifyEmail);
 
 export default router;
