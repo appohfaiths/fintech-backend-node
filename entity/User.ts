@@ -25,10 +25,10 @@ export class User {
     wallet: Relation<Wallet>
 
     @OneToMany(() => Transaction, transaction => transaction.sender)
-    sentTransactions: Transaction[]
+    sentTransactions: Relation<Transaction>[]
 
     @OneToMany(() => Transaction, transaction => transaction.recipient)
-    receivedTransactions: Transaction[]
+    receivedTransactions: Relation<Transaction>[]
 
     @Column()
     createdAt: Date

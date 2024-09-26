@@ -1,4 +1,4 @@
-import { Entity, PrimaryGeneratedColumn, Column, ManyToOne} from "typeorm";
+import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, Relation} from "typeorm";
 import {User} from "./User";
 
 @Entity()
@@ -17,8 +17,8 @@ export class Transaction {
     idempotencyKey: string
 
     @ManyToOne(() => User, user => user.sentTransactions)
-    sender: User
+    sender: Relation<User>
 
     @ManyToOne(() => User, user => user.receivedTransactions)
-    recipient: User
+    recipient: Relation<User>
 }
