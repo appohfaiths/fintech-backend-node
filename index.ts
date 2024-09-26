@@ -5,6 +5,7 @@ import helmet from "helmet";
 import cors from "cors";
 import routes from "./routes/index";
 import {AppDataSource} from "./config/data-source";
+import swaggerApp from './swagger'
 
 if (process.env.NODE_ENV === "development") {
     dotenv.config();
@@ -19,6 +20,7 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 
 app.use("/api", routes);
+app.use("/api/docs", swaggerApp);
 
 AppDataSource.initialize().then(() => {
     app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
