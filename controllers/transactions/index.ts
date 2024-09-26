@@ -16,19 +16,16 @@ const userRepository: Repository<User> = AppDataSource.getRepository(User);
 // @route POST /api/transactions/send
 // @access Private
 export const sendMoney = asyncHandler(async ( req: Request, res: Response) => {
-    const { amount, senderWalletId, receiverWalletId} = req.body;
-    const idempotencyKey = req.headers['idempotency-key'] as string
+    const { amount, senderWalletId, receiverWalletId, idempotencyKey} = req.body;
+    // const idempotencyKey = req.headers['idempotency-key'] as string
 
     if(!senderWalletId || !receiverWalletId) {
         res.status(400).json({ message: "Cannot send money without sender and receiver wallet Id"});
     }
 
-    console.log({amount, senderWalletId, receiverWalletId, idempotencyKey})
-
     const senderWallet = await walletRepository.findOneBy({id: senderWalletId});
     const receiverWallet = await walletRepository.findOneBy({id: receiverWalletId});
 
-    console.log({senderWallet, receiverWallet})
 
     if(!senderWallet || !receiverWallet) {
         res.status(400).json({ message: "Sender or receiver wallet not found"});
@@ -49,17 +46,23 @@ export const sendMoney = asyncHandler(async ( req: Request, res: Response) => {
     }
 
     const transaction = new Transaction();
-    transaction.sender = senderWallet.user;
-    transaction.recipient = receiverWallet.user;
-    transaction.amount = amount;
+    transaction.sender = await userRepository.findOne({
+        where: { wallet: { id: senderWalletId } },
+        relations: ["wallet"]
+    });
+    transaction.recipient = await userRepository.findOne({
+        where: { wallet: { id: receiverWalletId } },
+        relations: ["wallet"]
+    });
+    transaction.amount = parsedAmount;
     transaction.createdAt = new Date();
     transaction.idempotencyKey = idempotencyKey ?? uuidv4();
 
     try {
         const createTransactionResponse = await transactionRepository.save(transaction);
         if(createTransactionResponse){
-            senderWallet.balance -= amount;
-            receiverWallet.balance += amount;
+            senderWallet.balance = parseFloat(senderWallet.balance.toString()) - parsedAmount;
+            receiverWallet.balance = parseFloat(receiverWallet.balance.toString()) + parsedAmount;
             await walletRepository.save(senderWallet);
             await walletRepository.save(receiverWallet);
             res.status(201).json({ message: "Transaction successful"});

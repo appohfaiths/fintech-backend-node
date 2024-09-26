@@ -20,7 +20,9 @@ export class User {
     @Column()
     password: string;
 
-    @OneToOne(() => Wallet, wallet => wallet.user)
+    @OneToOne(() => Wallet, wallet => wallet.user, {
+        cascade: true,
+    })
     @JoinColumn()
     wallet: Relation<Wallet>
 

@@ -7,6 +7,7 @@
       "test": "echo \"Error: no test specified\" && exit 1",
       "start": "ts-node src/index.ts",
       "typeorm": "typeorm-ts-node-commonjs",
+      "migration-create": "npx typeorm-ts-node-commonjs migration:create",
       "migration-run": "npx typeorm-ts-node-commonjs migration:run -d ./config/data-source",
       "copy-templates": "mkdir -p ./build/templates && ncp ./templates ./build/templates",
       "dev": "npm run build && NODE_ENV=development concurrently \"npx tsc --watch\" \"nodemon -q build/index.js\"",
