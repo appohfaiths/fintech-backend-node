@@ -81,6 +81,15 @@ export const verifyEmail = asyncHandler(async (req: Request, res: Response, next
         }
     } as Request;
 
-    const createWalletResponse = createNewWallet(walletReq, res, next);
+    try {
+        const createWalletResponse = await createNewWallet(walletReq, res, next);
+        console.log(createWalletResponse)
+    } catch(error) {
+        if(error instanceof Error){
+            res.status(500).json({ message: error.message});
+        } else {
+            res.status(500).json({ message: "An unknown error occurred"});
+        }
+    }
     res.status(200).json({ message: "Email verified successfully"});
 })
