@@ -35,7 +35,8 @@ export const sendMoney = asyncHandler(async ( req: Request, res: Response) => {
     if(existingTransactionByIdempotencyKey){
         res.set('Idempotent-Replayed', "true")
         res.status(400).json({
-            message: "This transaction already exists"
+            message: "This transaction already exists",
+            data: existingTransactionByIdempotencyKey
         })
         return;
     }
@@ -65,7 +66,7 @@ export const sendMoney = asyncHandler(async ( req: Request, res: Response) => {
             receiverWallet.balance = parseFloat(receiverWallet.balance.toString()) + parsedAmount;
             await walletRepository.save(senderWallet);
             await walletRepository.save(receiverWallet);
-            res.status(201).json({ message: "Transaction successful"});
+            res.status(201).json({ message: "Transaction successful", data: createTransactionResponse});
         } else {
             res.status(400).json({ message: "Failed to create transaction"});
         }
@@ -98,14 +99,26 @@ export const getUserTransactions = asyncHandler( async(req: Request, res: Respon
             { sender: user},
             { recipient: user}
         ],
-        order: { createdAt: 'DESC'}
+        order: { createdAt: 'DESC'},
+        relations: ["sender", "recipient"]
     });
 
     if(!transactions) {
         res.status(404).json({ message: "No transactions found"});
-    } else {
-        res.status(200).json({
-            transactions
-        });
+        return;
     }
+
+    const transactionsWithDetails = transactions.map(transaction => {
+        const isSender = transaction.sender.id === userId;
+        return {
+            ...transaction,
+            role: isSender ? 'sender' : 'recipient',
+            type: isSender ? 'debit' : 'credit'
+        };
+    });
+
+    res.status(200).json({
+        message: "Transactions retrieved successfully",
+        data: transactionsWithDetails
+    });
 })
