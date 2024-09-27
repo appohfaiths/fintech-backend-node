@@ -2,7 +2,7 @@ import { Request, Response, NextFunction} from "express";
 import asyncHandler from "express-async-handler";
 import {Repository} from "typeorm";
 import bcrypt from "bcryptjs";
-import {generateToken} from "../../utils/generateToken";
+import {generateEmailVerificationToken} from "../../utils/generateToken";
 import {sendEmail} from "../../utils/sendEmail";
 import {User} from "../../entity/User";
 import {AppDataSource} from "../../config/data-source";
@@ -39,6 +39,7 @@ export const register = asyncHandler(async ( req: Request, res: Response) => {
 
     console.log(createUserResponse)
     if(!createUserResponse) return;
+    const emailVerificationToken = generateEmailVerificationToken(createUserResponse.id);
     const emailResponse = await sendEmail({
         toEmail: email,
         subject: "Verify your email",
