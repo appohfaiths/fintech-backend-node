@@ -7,6 +7,7 @@ import {sendEmail} from "../../utils/sendEmail";
 import {User} from "../../entity/User";
 import {AppDataSource} from "../../config/data-source";
 import {createNewWallet} from "../wallet";
+import {APIResponse} from "../../types/utils";
 
 const userRepository: Repository<User> = AppDataSource.getRepository(User);
 
@@ -17,12 +18,12 @@ export const register = asyncHandler(async ( req: Request, res: Response) => {
     const { email, username, password} = req.body;
 
     if(!email || !username || !password) {
-        res.status(400).json({ message: "Please provide all fields"});
+        res.status(400).json({ message: "Please provide all fields", code: 400} as APIResponse);
     }
 
     const userExists = await userRepository.findOneBy({ email});
     if(userExists) {
-        res.status(400).json({ message: "User already exists"});
+        res.status(400).json({ message: "User already exists", code: 400} as APIResponse);
     }
 
     const salt = await bcrypt.genSalt(10);
@@ -37,8 +38,16 @@ export const register = asyncHandler(async ( req: Request, res: Response) => {
     user.updatedAt = new Date();
     const createUserResponse = await userRepository.save(user);
 
-    console.log(createUserResponse)
     if(!createUserResponse) return;
+    res.status(201).json({
+        message: "User created successfully",
+        data: {
+            id: createUserResponse.id,
+            username: createUserResponse.username,
+            email: createUserResponse.email,
+        },
+        code: 201
+    } as APIResponse);
     const emailVerificationToken = generateEmailVerificationToken(createUserResponse.id);
     const emailResponse = await sendEmail({
         toEmail: email,
@@ -51,11 +60,11 @@ export const register = asyncHandler(async ( req: Request, res: Response) => {
         template: "RegisterUser.html"
     })
     if(emailResponse.code === 200){
-        res.status(201).json({ message: "User registered successfully"});
+        res.status(201).json({ message: "Registration email sent successfully", code: 201} as APIResponse);
     } else if (emailResponse.code === 400) {
-        res.status(400).json({ message: "An error occurred while sending email"});
+        res.status(400).json({ message: "An error occurred while sending email", code: 400} as APIResponse);
     } else {
-        res.status(500).json({ message: "An unknown error occurred"});
+        res.status(500).json({ message: "An unknown error occurred", code: 500 } as APIResponse);
     }
 
 })
@@ -67,7 +76,7 @@ export const verifyEmail = asyncHandler(async (req: Request, res: Response, next
     const { id } = req.params;
     const user = await userRepository.findOneBy({ id});
     if(!user) {
-        res.status(404).json({ message: "User not found"});
+        res.status(404).json({ message: "User not found", code: 404 } as APIResponse);
     }
     user.isEmailVerified = true;
     user.updatedAt = new Date();
@@ -84,13 +93,12 @@ export const verifyEmail = asyncHandler(async (req: Request, res: Response, next
 
     try {
         const createWalletResponse = await createNewWallet(walletReq, res, next);
-        console.log(createWalletResponse)
     } catch(error) {
         if(error instanceof Error){
-            res.status(500).json({ message: error.message});
+            res.status(500).json({ message: error.message, code: 500 } as APIResponse);
         } else {
-            res.status(500).json({ message: "An unknown error occurred"});
+            res.status(500).json({ message: "An unknown error occurred", code: 500 } as APIResponse);
         }
     }
-    res.status(200).json({ message: "Email verified successfully"});
+    res.status(200).json({ message: "Email verified successfully", code: 200} as APIResponse);
 })

@@ -7,6 +7,7 @@ import {Wallet} from "../../entity/Wallet";
 import {User} from "../../entity/User";
 import {AppDataSource} from "../../config/data-source";
 import {sendEmail} from "../../utils/sendEmail";
+import {APIResponse} from "../../types/utils";
 
 const transactionRepository: Repository<Transaction> = AppDataSource.getRepository(Transaction);
 const walletRepository: Repository<Wallet> = AppDataSource.getRepository(Wallet);
@@ -20,7 +21,7 @@ export const sendMoney = asyncHandler(async ( req: Request, res: Response) => {
     // const idempotencyKey = req.headers['idempotency-key'] as string
 
     if(!senderWalletId || !receiverWalletId) {
-        res.status(400).json({ message: "Cannot send money without sender and receiver wallet Id"});
+        res.status(400).json({ message: "Cannot send money without sender and receiver wallet Id", code: 400 } as APIResponse);
     }
 
     const senderWallet = await walletRepository.findOneBy({id: senderWalletId});
@@ -28,7 +29,7 @@ export const sendMoney = asyncHandler(async ( req: Request, res: Response) => {
 
 
     if(!senderWallet || !receiverWallet) {
-        res.status(400).json({ message: "Sender or receiver wallet not found"});
+        res.status(400).json({ message: "Sender or receiver wallet not found", code: 400 } as APIResponse);
     }
 
     const existingTransactionByIdempotencyKey = await transactionRepository.findOneBy({ idempotencyKey});
@@ -36,14 +37,16 @@ export const sendMoney = asyncHandler(async ( req: Request, res: Response) => {
         res.set('Idempotent-Replayed', "true")
         res.status(400).json({
             message: "This transaction already exists",
-            data: existingTransactionByIdempotencyKey
+            data: existingTransactionByIdempotencyKey,
+            code: 400,
         })
         return;
     }
     const parsedAmount = parseFloat(amount);
     const parsedSenderBalance = parseFloat(senderWallet.balance.toString());
     if(parsedSenderBalance < parsedAmount) {
-        res.status(400).json({ message: "Insufficient funds"});
+        res.status(400).json({ message: "Insufficient funds", code: 400 } as APIResponse);
+        return;
     }
 
     const transaction = new Transaction();
@@ -66,15 +69,15 @@ export const sendMoney = asyncHandler(async ( req: Request, res: Response) => {
             receiverWallet.balance = parseFloat(receiverWallet.balance.toString()) + parsedAmount;
             await walletRepository.save(senderWallet);
             await walletRepository.save(receiverWallet);
-            res.status(201).json({ message: "Transaction successful", data: createTransactionResponse});
+            res.status(201).json({ message: "Transaction successful", data: createTransactionResponse, code: 201} as APIResponse);
         } else {
-            res.status(400).json({ message: "Failed to create transaction"});
+            res.status(400).json({ message: "Failed to create transaction", code: 400 } as APIResponse);
         }
     } catch(error) {
         if(error instanceof  Error) {
-            res.status(500).json({ message: error.message});
+            res.status(500).json({ message: error.message, code: 500 } as APIResponse);
         } else {
-            res.status(500).json({ message: "An unknown error occurred"});
+            res.status(500).json({ message: "An unknown error occurred", code: 500 } as APIResponse);
         }
     }
 
@@ -91,7 +94,7 @@ export const getUserTransactions = asyncHandler( async(req: Request, res: Respon
 
     const user = await userRepository.findOneBy({id: userId});
     if(!user) {
-        res.status(404).json({ message: "User not found"});
+        res.status(404).json({ message: "User not found", code: 404} as APIResponse);
     }
 
     const transactions = await transactionRepository.find({
@@ -104,7 +107,7 @@ export const getUserTransactions = asyncHandler( async(req: Request, res: Respon
     });
 
     if(!transactions) {
-        res.status(404).json({ message: "No transactions found"});
+        res.status(404).json({ message: "No transactions found", code: 404 } as APIResponse);
         return;
     }
 
@@ -131,6 +134,7 @@ export const getUserTransactions = asyncHandler( async(req: Request, res: Respon
 
     res.status(200).json({
         message: "Transactions retrieved successfully",
+        code: 200,
         data: transactionsWithDetails
-    });
+    } as APIResponse);
 })

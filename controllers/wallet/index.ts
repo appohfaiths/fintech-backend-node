@@ -5,6 +5,7 @@ import {Wallet} from "../../entity/Wallet";
 import {User} from "../../entity/User";
 import {AppDataSource} from "../../config/data-source";
 import {sendEmail} from "../../utils/sendEmail";
+import {APIResponse} from "../../types/utils";
 
 const walletRepository: Repository<Wallet> = AppDataSource.getRepository(Wallet);
 const userRepository: Repository<User> = AppDataSource.getRepository(User);
@@ -15,7 +16,7 @@ const userRepository: Repository<User> = AppDataSource.getRepository(User);
 export const createNewWallet = asyncHandler(async ( req: Request, res: Response) => {
     const { balance, currency, userId} = req.body;
     if(!userId) {
-        res.status(400).json({ message: "Cannot create wallet without user Id"});
+        res.status(400).json({ message: "Cannot create wallet without user Id", code: 400} as APIResponse);
     }
 
     const user = await userRepository.findOneBy({id: userId});
@@ -43,15 +44,23 @@ export const createNewWallet = asyncHandler(async ( req: Request, res: Response)
                 },
                 template: "NewWalletCreated.html"
             })
-            res.status(201).json({ message: "Wallet created successfully"});
+            res.status(201).json({
+                message: "Wallet created successfully",
+                code: 201,
+                data: {
+                    balance: createWalletResponse.balance,
+                    currency: createWalletResponse.currency,
+                    id: createWalletResponse.id
+                }
+            } as APIResponse);
         } else {
-            res.status(400).json({ message: "Failed to create wallet"});
+            res.status(400).json({ message: "Failed to create wallet", code: 400} as APIResponse);
         }
     } catch(error) {
         if(error instanceof  Error) {
-            res.status(500).json({ message: error.message});
+            res.status(500).json({ message: error.message, code: 500} as APIResponse);
         } else {
-            res.status(500).json({ message: "An unknown error occurred"});
+            res.status(500).json({ message: "An unknown error occurred", code: 500} as APIResponse);
         }
     }
 
@@ -63,17 +72,21 @@ export const createNewWallet = asyncHandler(async ( req: Request, res: Response)
 export const getWallet = asyncHandler( async(req: Request, res: Response) => {
     const walletId = req.params.id;
     if(!walletId) {
-        res.status(400).json({ message: "Cannot get wallet without wallet Id"});
+        res.status(400).json({ message: "Cannot get wallet without wallet Id", code: 400} as APIResponse);
     }
 
     const wallet = await walletRepository.findOneBy({id: walletId});
     if(!wallet) {
-        res.status(404).json({ message: "Wallet not found"});
+        res.status(404).json({ message: "Wallet not found", code: 404} as APIResponse);
     } else {
         res.status(200).json({
-            balance: wallet.balance,
-            currency: wallet.currency,
-        });
+            message: "Success",
+            code: 200,
+            data: {
+                balance: wallet.balance,
+                currency: wallet.currency
+            }
+        } as APIResponse);
     }
 })
 
@@ -87,18 +100,18 @@ export const getWallet = asyncHandler( async(req: Request, res: Response) => {
 export const updateWallet = asyncHandler(async (req: Request, res: Response) => {
     const walletId = req.params.id;
     if(!walletId) {
-        res.status(400).json({ message: "Cannot update wallet without wallet Id"});
+        res.status(400).json({ message: "Cannot update wallet without wallet Id", code: 400} as APIResponse);
     }
 
     const wallet = await walletRepository.findOneBy({id: walletId});
     if(!wallet) {
-        res.status(404).json({ message: "Wallet not found"});
+        res.status(404).json({ message: "Wallet not found", code: 400 } as APIResponse);
         return;
     }
 
     const { amount, currency} = req.body;
     if(!amount) {
-        res.status(400).json({ message: "Cannot update wallet without amount"});
+        res.status(400).json({ message: "Cannot update wallet without amount", code: 400} as APIResponse);
         return;
     }
 
@@ -111,8 +124,15 @@ export const updateWallet = asyncHandler(async (req: Request, res: Response) => 
     wallet.updatedAt = new Date();
     const updateWalletResponse = await walletRepository.save(wallet);
     if(updateWalletResponse) {
-        res.status(200).json({ message: "Wallet updated successfully"});
+        res.status(200).json({
+            message: "Wallet updated successfully",
+            data: {
+                balance: updateWalletResponse.balance,
+                currency: updateWalletResponse.currency
+            },
+            code: 200,
+        } as APIResponse);
     } else {
-        res.status(400).json({ message: "Failed to update wallet"});
+        res.status(400).json({ message: "Failed to update wallet", code: 400} as APIResponse);
     }
 })
