@@ -111,9 +111,21 @@ export const getUserTransactions = asyncHandler( async(req: Request, res: Respon
     const transactionsWithDetails = transactions.map(transaction => {
         const isSender = transaction.sender.id === userId;
         return {
-            ...transaction,
+            id: transaction.id,
+            amount: transaction.amount,
+            createdAt: transaction.createdAt,
             role: isSender ? 'sender' : 'recipient',
-            type: isSender ? 'debit' : 'credit'
+            type: isSender ? 'debit' : 'credit',
+            sender: {
+                id: transaction.sender.id,
+                username: transaction.sender.username,
+                email: transaction.sender.email
+            },
+            recipient: {
+                id: transaction.recipient.id,
+                username: transaction.recipient.username,
+                email: transaction.recipient.email
+            }
         };
     });
 

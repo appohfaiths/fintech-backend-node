@@ -6,7 +6,6 @@ import {generateToken} from "../../utils/generateToken";
 import {sendEmail} from "../../utils/sendEmail";
 import {User} from "../../entity/User";
 import {AppDataSource} from "../../config/data-source";
-import {ApiResponse} from "../../types/utils";
 import {createNewWallet} from "../wallet";
 
 const userRepository: Repository<User> = AppDataSource.getRepository(User);
@@ -45,7 +44,8 @@ export const register = asyncHandler(async ( req: Request, res: Response) => {
         subject: "Verify your email",
         data: {
             username,
-            emailConfirmationUrl: `http://localhost:8181/api/auth/verify-email/${createUserResponse.id}`
+            emailConfirmationUrl: `http://localhost:8181/api/auth/verify-email/${createUserResponse.id}`,
+            expirationTime: "10 minutes"
         },
         template: "RegisterUser.html"
     })
