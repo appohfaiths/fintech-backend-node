@@ -8,6 +8,7 @@ import {User} from "../../entity/User";
 import {AppDataSource} from "../../config/data-source";
 import {sendEmail} from "../../utils/sendEmail";
 import {APIResponse} from "../../types/utils";
+import {formatDate} from "../../utils/utils";
 
 const transactionRepository: Repository<Transaction> = AppDataSource.getRepository(Transaction);
 const walletRepository: Repository<Wallet> = AppDataSource.getRepository(Wallet);
@@ -70,7 +71,50 @@ export const sendMoney = asyncHandler(async ( req: Request, res: Response) => {
             receiverWallet.balance = parseFloat(receiverWallet.balance.toString()) + parsedAmount;
             await walletRepository.save(senderWallet);
             await walletRepository.save(receiverWallet);
-            res.status(201).json({ message: "Transaction successful", data: createTransactionResponse, code: 201} as APIResponse);
+            res.status(201).json({
+                message: "Transaction successful",
+                data: {
+                    id: createTransactionResponse.id,
+                    amount: createTransactionResponse.amount,
+                    date: createTransactionResponse.createdAt,
+                    sender: createTransactionResponse.sender.username,
+                    recipient: createTransactionResponse.recipient.username,
+                    createdAt: createTransactionResponse.createdAt,
+                    idempotencyKey: createTransactionResponse.idempotencyKey
+                },
+                code: 201} as APIResponse);
+            await sendEmail({
+                toEmail: transaction.sender.email,
+                subject: "Transaction Alert",
+                data: {
+                    username: transaction.sender.username,
+                    amount: transaction.amount,
+                    currency_symbol: "$",
+                    currency: "USD",
+                    counterparty_type: "Recipient",
+                    counterparty_name: transaction.recipient.username,
+                    transaction_type: "debited",
+                    transaction_id: transaction.id,
+                    transaction_date: formatDate(transaction.createdAt)
+                },
+                template: "TransactionNotification.html"
+            });
+            await sendEmail({
+                toEmail: transaction.recipient.email,
+                subject: "Transaction Alert",
+                data: {
+                    username: transaction.recipient.username,
+                    amount: transaction.amount,
+                    currency_symbol: "$",
+                    currency: "USD",
+                    counterparty_type: "Sender",
+                    counterparty_name: transaction.sender.username,
+                    transaction_type: "credited",
+                    transaction_id: transaction.id,
+                    transaction_date: formatDate(transaction.createdAt)
+                },
+                template: "TransactionNotification.html"
+            });
         } else {
             res.status(400).json({ message: "Failed to create transaction", code: 400 } as APIResponse);
         }
@@ -91,6 +135,7 @@ export const getUserTransactions = asyncHandler( async(req: Request, res: Respon
     const userId = req.params.id;
     if(!userId) {
         res.status(400).json({ message: "Cannot get transactions without user Id"});
+        return;
     }
 
     const user = await userRepository.findOneBy({id: userId});
@@ -118,7 +163,7 @@ export const getUserTransactions = asyncHandler( async(req: Request, res: Respon
         return {
             id: transaction.id,
             amount: transaction.amount,
-            createdAt: transaction.createdAt,
+            createdAt: formatDate(transaction.createdAt),
             role: isSender ? 'sender' : 'recipient',
             type: isSender ? 'debit' : 'credit',
             sender: {

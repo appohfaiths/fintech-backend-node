@@ -125,13 +125,13 @@ export const updateWallet = asyncHandler(async (req: Request, res: Response) => 
     wallet.updatedAt = new Date();
     const updateWalletResponse = await walletRepository.save(wallet);
     if(updateWalletResponse) {
-        res.status(200).json({
+        res.status(201).json({
             message: "Wallet updated successfully",
             data: {
                 balance: updateWalletResponse.balance,
                 currency: updateWalletResponse.currency
             },
-            code: 200,
+            code: 201,
         } as APIResponse);
     } else {
         res.status(400).json({ message: "Failed to update wallet", code: 400} as APIResponse);
