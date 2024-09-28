@@ -117,7 +117,6 @@ export const updateWallet = asyncHandler(async (req: Request, res: Response) => 
     }
 
     const parsedAmount = parseFloat(amount);
-    console.log(typeof wallet.balance);
     if(!Number.isNaN(parsedAmount)){
         wallet.balance = parseFloat(wallet.balance.toString()) + parsedAmount;
     }
