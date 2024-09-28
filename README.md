@@ -41,5 +41,6 @@ This project is a backend service for a fintech application, built using Node.js
   endpoints and their usage.
 ![Fintech Backend](/public/endpoints.png)
 - Read the [Design Choices](/docs/design-choices.md) for more information on the architecture and design decisions.
+- Refer to the [Usage Guide](/docs/usage-guide.md) for detailed instructions on using the application.
 
 
