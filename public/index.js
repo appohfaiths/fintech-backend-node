@@ -77,7 +77,6 @@ function showWalletSection() {
     document.getElementById('walletSection').style.display = 'block';
     document.getElementById('sendMoneySection').style.display = 'block';
     document.getElementById('transactionSection').style.display = 'block';
-    fetchWalletBalance();
 }
 
 function fetchWalletBalance(id) {
