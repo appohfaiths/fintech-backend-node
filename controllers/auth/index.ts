@@ -25,6 +25,7 @@ export const register = asyncHandler(async ( req: Request, res: Response) => {
     const userExists = await userRepository.findOneBy({ email});
     if(userExists) {
         res.status(400).json({ message: "User already exists", code: 400} as APIResponse);
+        return;
     }
 
     const salt = await bcrypt.genSalt(10);
@@ -94,7 +95,7 @@ export const verifyEmail = asyncHandler(async (req: Request, res: Response, next
     } as Request;
 
     try {
-        const createWalletResponse = await createNewWallet(walletReq, res, next);
+        const createWalletResponse = await createNewWallet(walletReq, res as Response, next as NextFunction);
     } catch(error) {
         if(error instanceof Error){
             res.status(500).json({ message: error.message, code: 500 } as APIResponse);

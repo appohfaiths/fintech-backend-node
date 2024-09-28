@@ -23,6 +23,12 @@ export const sendMoney = asyncHandler(async ( req: Request, res: Response) => {
 
     if(!senderWalletId || !receiverWalletId) {
         res.status(400).json({ message: "Cannot send money without sender and receiver wallet Id", code: 400 } as APIResponse);
+        return
+    }
+
+    if(senderWalletId === receiverWalletId) {
+        res.status(400).json({ message: "Sender and Receiver wallet are the same", code: 400 } as APIResponse);
+        return
     }
 
     const senderWallet = await walletRepository.findOneBy({id: senderWalletId});
@@ -39,7 +45,9 @@ export const sendMoney = asyncHandler(async ( req: Request, res: Response) => {
         res.set('Idempotent-Replayed', "true")
         res.status(400).json({
             message: "This transaction already exists",
-            data: existingTransactionByIdempotencyKey,
+            data: {
+                ...existingTransactionByIdempotencyKey
+            },
             code: 400,
         })
         return;

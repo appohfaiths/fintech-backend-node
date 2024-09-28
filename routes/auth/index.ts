@@ -25,7 +25,7 @@ const router = express.Router();
  *               password:
  *                    type: string
  *      responses:
- *          200:
+ *          201:
  *             description: User registered successfully
  *          400:
  *             description: Bad request

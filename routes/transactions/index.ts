@@ -27,7 +27,7 @@ const router = express.Router()
  *               idempotencyKey:
  *                    type: string
  *      responses:
- *          200:
+ *          201:
  *             description: Money sent successfully
  *          400:
  *             description: Bad request

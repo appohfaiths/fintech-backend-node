@@ -25,7 +25,7 @@ const router = express.Router();
  *               currency:
  *                    type: string
  *      responses:
- *          200:
+ *          201:
  *             description: Wallet created successfully
  *          400:
  *             description: Bad request
@@ -77,7 +77,7 @@ router.post("/", createNewWallet);
  *               currency:
  *                    type: string
  *      responses:
- *          200:
+ *          201:
  *             description: Wallet updated successfully
  *          400:
  *             description: Bad request
