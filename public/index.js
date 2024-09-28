@@ -44,6 +44,7 @@ function signup() {
         .then(data => {
             if (data.code === 201) {
                 showNotification('Sign up successful. Please check your email for confirmation code.');
+                document.getElementById('signupSection').style.display = 'none';
                 document.getElementById('emailConfirmationSection').style.display = 'block';
             } else {
                 showNotification('Sign up failed: ' + data.message);
@@ -61,9 +62,10 @@ function confirmEmail() {
     })
         .then(response => response.json())
         .then(data => {
-            if (data.success) {
+            if (data.code === 201) {
                 showNotification('Email confirmed successfully. You can now log in.');
                 document.getElementById('emailConfirmationSection').style.display = 'none';
+                showWalletSection();
             } else {
                 showNotification('Email confirmation failed: ' + data.message);
             }
@@ -72,8 +74,6 @@ function confirmEmail() {
 }
 
 function showWalletSection() {
-    document.getElementById('loginSection').style.display = 'none';
-    document.getElementById('signupSection').style.display = 'none';
     document.getElementById('walletSection').style.display = 'block';
     document.getElementById('sendMoneySection').style.display = 'block';
     document.getElementById('transactionSection').style.display = 'block';
@@ -81,10 +81,15 @@ function showWalletSection() {
 }
 
 function fetchWalletBalance(id) {
+    const walletBalance = document.getElementById('walletBalance');
     fetch(`/api/wallet/${id}`)
         .then(response => response.json())
         .then(data => {
-            document.getElementById('walletBalance').textContent = data.balance;
+            if (data.code === 200) {
+                walletBalance.textContent = `${data.data.balance}`;
+            } else {
+                showNotification('Error fetching balance: ' + data.message);
+            }
         })
         .catch(error => showNotification('Error fetching balance: ' + error.message));
 }
@@ -92,6 +97,7 @@ function fetchWalletBalance(id) {
 function topUp() {
     const amount = document.getElementById('topupAmount').value;
     const walletId = document.getElementById('walletId').value;
+    const walletBalance = document.getElementById('walletBalance');
 
     fetch(`/api/wallet/${walletId}`, {
         method: 'PUT',
@@ -101,6 +107,7 @@ function topUp() {
         .then(response => response.json())
         .then(data => {
             if (data.code === 201) {
+                walletBalance.textContent = `${data.data.balance}`;
                 showNotification('Top up successful');
             } else {
                 showNotification('Top up failed: ' + data.message);
@@ -137,13 +144,17 @@ function fetchTransactions() {
     fetch(`/api/transactions/${userId}`)
         .then(response => response.json())
         .then(data => {
-            const transactionList = document.getElementById('transactionHistory');
-            transactionList.innerHTML = '';
-            data.data.forEach(transaction => {
-                const li = document.createElement('li');
-                li.textContent = `${transaction.type}: ${transaction.amount} Recipient: ${transaction.recipient.email} USD - ${new Date(transaction.createdAt).toLocaleString()}`;
-                transactionList.appendChild(li);
-            });
+            if(data.code === 200) {
+                const transactionList = document.getElementById('transactionHistory');
+                transactionList.innerHTML = '';
+                data.data.forEach(transaction => {
+                    const li = document.createElement('li');
+                    li.textContent = `${transaction.type}:\n${transaction.amount} USD\n${transaction.createdAt}\n${transaction.type === 'debit' ? 'Recipient' : 'Sender'}: ${transaction.type === 'debit' ? transaction.recipient.email : transaction.sender.email}`;
+                    transactionList.appendChild(li);
+                });
+            } else {
+                showNotification('Error fetching transactions: ' + data.message);
+            }
         })
         .catch(error => showNotification('Error fetching transactions: ' + error.message));
 }
