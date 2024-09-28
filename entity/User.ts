@@ -6,35 +6,35 @@ import {Transaction} from "./Transaction";
 export class User {
 
     @PrimaryGeneratedColumn('uuid')
-    id: string
+    id!: string
 
     @Column({ unique: true, length: 100 })
-    username: string;
+    username!: string;
 
     @Column({ unique: true })
-    email: string;
+    email!: string;
 
     @Column()
-    isEmailVerified: boolean;
+    isEmailVerified!: boolean;
 
     @Column()
-    password: string;
+    password!: string;
 
     @OneToOne(() => Wallet, wallet => wallet.user, {
         cascade: true,
     })
     @JoinColumn()
-    wallet: Relation<Wallet>
+    wallet!: Relation<Wallet>
 
     @OneToMany(() => Transaction, transaction => transaction.sender)
-    sentTransactions: Relation<Transaction>[]
+    sentTransactions!: Relation<Transaction>[]
 
     @OneToMany(() => Transaction, transaction => transaction.recipient)
-    receivedTransactions: Relation<Transaction>[]
+    receivedTransactions!: Relation<Transaction>[]
 
     @Column()
-    createdAt: Date
+    createdAt!: Date
 
     @Column()
-    updatedAt: Date
+    updatedAt!: Date
 }

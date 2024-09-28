@@ -5,20 +5,20 @@ import {User} from "./User";
 export class Wallet {
 
     @PrimaryGeneratedColumn('uuid')
-    id: string
+    id!: string
 
     @Column("decimal", { precision: 10, scale: 2 })
-    balance: number
+    balance!: number
 
     @Column({ length: 3 })
-    currency: string
+    currency!: string
 
     @OneToOne(() => User, user => user.wallet)
-    user: Relation<User>
+    user!: Relation<User>
 
     @Column()
-    createdAt: Date
+    createdAt!: Date
 
     @Column()
-    updatedAt: Date
+    updatedAt!: Date
 }

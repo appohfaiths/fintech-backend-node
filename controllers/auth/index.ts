@@ -18,7 +18,8 @@ export const register = asyncHandler(async ( req: Request, res: Response) => {
     const { email, username, password} = req.body;
 
     if(!email || !username || !password) {
-        res.status(400).json({ message: "Please provide all fields", code: 400} as APIResponse);
+        res.status(400).json({ message: "Please provide all fields", code: 400 } as APIResponse);
+        return;
     }
 
     const userExists = await userRepository.findOneBy({ email});
@@ -60,7 +61,7 @@ export const register = asyncHandler(async ( req: Request, res: Response) => {
         template: "RegisterUser.html"
     })
     if(emailResponse.code === 200){
-        res.status(201).json({ message: "Registration email sent successfully", code: 201} as APIResponse);
+        res.status(200).json({ message: "Registration email sent successfully", code: 200} as APIResponse);
     } else if (emailResponse.code === 400) {
         res.status(400).json({ message: "An error occurred while sending email", code: 400} as APIResponse);
     } else {
@@ -77,6 +78,7 @@ export const verifyEmail = asyncHandler(async (req: Request, res: Response, next
     const user = await userRepository.findOneBy({ id});
     if(!user) {
         res.status(404).json({ message: "User not found", code: 404 } as APIResponse);
+        return;
     }
     user.isEmailVerified = true;
     user.updatedAt = new Date();

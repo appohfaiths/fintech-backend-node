@@ -5,20 +5,20 @@ import {User} from "./User";
 export class Transaction {
 
     @PrimaryGeneratedColumn('uuid')
-    id: string
+    id!: string
 
     @Column("decimal", { precision: 10, scale: 2})
-    amount: number
+    amount!: number
 
     @Column()
-    createdAt: Date
+    createdAt!: Date
 
     @Column({ unique: true})
-    idempotencyKey: string
+    idempotencyKey!: string
 
     @ManyToOne(() => User, user => user.sentTransactions)
-    sender: Relation<User>
+    sender!: Relation<User>
 
     @ManyToOne(() => User, user => user.receivedTransactions)
-    recipient: Relation<User>
+    recipient!: Relation<User>
 }

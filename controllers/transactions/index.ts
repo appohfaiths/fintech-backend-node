@@ -30,6 +30,7 @@ export const sendMoney = asyncHandler(async ( req: Request, res: Response) => {
 
     if(!senderWallet || !receiverWallet) {
         res.status(400).json({ message: "Sender or receiver wallet not found", code: 400 } as APIResponse);
+        return;
     }
 
     const existingTransactionByIdempotencyKey = await transactionRepository.findOneBy({ idempotencyKey});
@@ -53,11 +54,11 @@ export const sendMoney = asyncHandler(async ( req: Request, res: Response) => {
     transaction.sender = await userRepository.findOne({
         where: { wallet: { id: senderWalletId } },
         relations: ["wallet"]
-    });
+    }) as unknown as User;
     transaction.recipient = await userRepository.findOne({
         where: { wallet: { id: receiverWalletId } },
         relations: ["wallet"]
-    });
+    }) as unknown as User;
     transaction.amount = parsedAmount;
     transaction.createdAt = new Date();
     transaction.idempotencyKey = idempotencyKey ?? uuidv4();
@@ -95,6 +96,7 @@ export const getUserTransactions = asyncHandler( async(req: Request, res: Respon
     const user = await userRepository.findOneBy({id: userId});
     if(!user) {
         res.status(404).json({ message: "User not found", code: 404} as APIResponse);
+        return;
     }
 
     const transactions = await transactionRepository.find({

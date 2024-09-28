@@ -17,6 +17,7 @@ export const createNewWallet = asyncHandler(async ( req: Request, res: Response)
     const { balance, currency, userId} = req.body;
     if(!userId) {
         res.status(400).json({ message: "Cannot create wallet without user Id", code: 400} as APIResponse);
+        return;
     }
 
     const user = await userRepository.findOneBy({id: userId});

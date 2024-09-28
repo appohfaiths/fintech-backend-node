@@ -9,7 +9,7 @@ const userRepository: Repository<User> = AppDataSource.getRepository(User);
 
 export const protect = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
     let token: string;
-    if (req.headers.authorization && req.headers.authorization.startsWith('Bearer')) {
+    if (req?.headers?.authorization?.startsWith('Bearer')) {
         try {
             // get token from the header
             token = req.headers.authorization.split(' ')[1];
@@ -23,6 +23,7 @@ export const protect = asyncHandler(async (req: Request, res: Response, next: Ne
             throw new Error('Not authorized');
         }
     }
+    // @ts-ignore
     if (!token) {
         res.status(401);
         throw new Error('Not authorized');

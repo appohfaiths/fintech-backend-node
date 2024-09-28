@@ -10,19 +10,19 @@ let socket;
 let currentUser;
 
 // Connect to Socket.IO server
-function connectSocket() {
+(function connectSocket() {
     socket = io();
     socket.on('notification', (message) => {
         showNotification(message);
     });
-}
+})();
 
 function showNotification(message) {
     const notificationElement = document.createElement('div');
     notificationElement.className = 'notification';
     notificationElement.textContent = message;
     document.getElementById('notifications').appendChild(notificationElement);
-    setTimeout(() => notificationElement.remove(), 5000);
+    setTimeout(() => notificationElement.remove(), 3000);
 }
 
 function signup() {
@@ -42,7 +42,7 @@ function signup() {
     })
         .then(response => response.json())
         .then(data => {
-            if (data.success) {
+            if (data.code === 201) {
                 showNotification('Sign up successful. Please check your email for confirmation code.');
                 document.getElementById('emailConfirmationSection').style.display = 'block';
             } else {
