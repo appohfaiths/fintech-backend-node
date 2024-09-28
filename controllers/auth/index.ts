@@ -40,7 +40,11 @@ export const register = asyncHandler(async ( req: Request, res: Response) => {
     user.updatedAt = new Date();
     const createUserResponse = await userRepository.save(user);
 
-    if(!createUserResponse) return;
+    if(!createUserResponse) {
+        res.status(500).json({ message: "Failed to create user", code: 500 } as APIResponse);
+        return
+    }
+
     res.status(201).json({
         message: "User created successfully",
         data: {
@@ -61,14 +65,9 @@ export const register = asyncHandler(async ( req: Request, res: Response) => {
         },
         template: "RegisterUser.html"
     })
-    if(emailResponse.code === 200){
-        res.status(200).json({ message: "Registration email sent successfully", code: 200} as APIResponse);
-    } else if (emailResponse.code === 400) {
-        res.status(400).json({ message: "An error occurred while sending email", code: 400} as APIResponse);
-    } else {
-        res.status(500).json({ message: "An unknown error occurred", code: 500 } as APIResponse);
+    if (emailResponse.code === 400 || emailResponse.code === 500) {
+    //     resend email
     }
-
 })
 
 // @desc Verify email

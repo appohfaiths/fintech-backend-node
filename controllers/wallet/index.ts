@@ -102,6 +102,7 @@ export const updateWallet = asyncHandler(async (req: Request, res: Response) => 
     const walletId = req.params.id;
     if(!walletId) {
         res.status(400).json({ message: "Cannot update wallet without wallet Id", code: 400} as APIResponse);
+        return;
     }
 
     const wallet = await walletRepository.findOneBy({id: walletId});
